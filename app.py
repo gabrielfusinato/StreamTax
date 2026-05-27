@@ -2,6 +2,9 @@ import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
+from rich.console import Console
+from rich.table import Table
+
 load_dotenv()
 
 supabase: Client = create_client(
@@ -82,8 +85,11 @@ def analyse_data():
                 continue
             
         try: 
+            #data = read_data(column_name)
+            #print(data)
+
             data = read_data(column_name)
-            print(data)
+            display_table(column_name, data)
             
         except ValueError:
             print("Please type a valid number or 'X'.")
@@ -91,10 +97,30 @@ def analyse_data():
         except Exception as e:
             print(f"We found no data about that. Problem detected:\n{e}")
 
+        input("\nPRESS ANY KEY TO CONTINUE")
+
 
 def read_data(coluna):
-    response = supabase.table("irpf_bruto").select(coluna).execute()
+    """response = supabase.table("irpf_bruto").select(coluna).execute()
+    valores = [linha[coluna] for linha in response.data]"""
+    response = supabase.table("irpf_bruto").select(f"mounth, {coluna}").execute()
+
+    #return valores
     return response.data
+
+
+#só pra sair bonito
+def display_table(coluna_escolhida, dados):
+    console = Console()
+    tabela = Table(title=f"Dados por Mês: {coluna_escolhida}")
+    
+    tabela.add_column("Mês", style="magenta", justify="center")
+    tabela.add_column(coluna_escolhida, style="cyan", justify="center")
+
+    for item in dados:
+        tabela.add_row(str(item['mounth']), str(item[coluna_escolhida]))
+
+    console.print(tabela)
 
 
 def main():
