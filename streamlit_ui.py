@@ -59,7 +59,7 @@ if df.empty:
     st.warning("No data found in the database.")
     st.stop()
 
-col_month = "mounth" if "mounth" in df.columns else "month"
+col_mes = "mes" if "mes" in df.columns else "mes"
 
 expected = {g[k] for g in AGE_GROUPS for k in ("qty", "val", "minus_qty", "minus_val") if k in g}
 missing = sorted(expected - set(df.columns))
@@ -69,12 +69,12 @@ if missing:
 
 st.subheader("Taxpayers Overview")
 
-selected_month = st.selectbox("Select a month:", df[col_month].unique())
-month_data = df[df[col_month] == selected_month].iloc[0]
+selected_mes = st.selectbox("Select a mes:", df[col_mes].unique())
+mes_data = df[df[col_mes] == selected_mes].iloc[0]
 
 labels = [g["label"] for g in AGE_GROUPS]
-taxpayers = [group_value(month_data, g, "qty") for g in AGE_GROUPS]
-amounts = [group_value(month_data, g, "val") for g in AGE_GROUPS]
+taxpayers = [group_value(mes_data, g, "qty") for g in AGE_GROUPS]
+amounts = [group_value(mes_data, g, "val") for g in AGE_GROUPS]
 
 total_pessoas = sum(taxpayers)
 total_dinheiro = sum(amounts)
@@ -90,7 +90,7 @@ val_per_person = [
     for qtd, amt in zip(taxpayers, amounts)
 ]
 
-st.markdown(f"#### Distribuição por faixa etária — {selected_month}")
+st.markdown(f"#### Distribuição por faixa etária — {selected_mes}")
 
 c1, c2 = st.columns(2)
 

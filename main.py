@@ -18,10 +18,10 @@ def fetch_irpf_data(supabase: Client) -> pd.DataFrame:
     
     if not df.empty:
         for col in df.columns:
-            if col not in ['id', 'mounth', 'created_at']:
-                limpo = df[col].astype(str).str.strip()
-                limpo = limpo.replace('None', '').replace('nan', '')
-                limpo = limpo.str.replace('.', '', regex=False).str.replace(',', '.')
-                df[col] = pd.to_numeric(limpo, errors='coerce')
+            if col not in ['id', 'mes', 'created_at']:
+                clean = df[col].astype(str).str.strip()
+                clean = clean.replace('None', '').replace('nan', '')
+                clean = clean.str.replace('.', '', regex=False).str.replace(',', '.')
+                df[col] = pd.to_numeric(clean, errors='coerce')
                 
     return df

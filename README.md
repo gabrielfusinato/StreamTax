@@ -1,17 +1,16 @@
-# IRPF Analytics - Age-Based Tax Dashboard
+# IRPF Analytics - Income Tax Refund by Age Dashboard
 
-An interactive dashboard that analyzes **Brazilian Income Tax (IRPF)** refund data broken down by **age group**, built with **Python**, **Streamlit**, **Supabase**, and **Plotly**.
-This project was developed to practice **database integration (PostgreSQL)**, **messy real-world data cleaning**, and **interactive data visualization**.
+An interactive dashboard for analyzing **Brazilian Income Tax Refund (IRPF restitution)** data by **age group**, built with **Python**, **Pandas**, **Streamlit**, **Supabase**, and **Plotly**.
 
 ---
 
 ## 🛠️ Setup
 
-Install the necessary dependencies to connect to the database and run the dashboard:
+Install the required dependencies:
 
 ```bash
 pip install streamlit supabase pandas plotly python-dotenv
-```
+````
 
 Create a `.env` file in the project root with your Supabase credentials:
 
@@ -20,47 +19,16 @@ SUPABASE_URL=your-project-url
 SUPABASE_PUBLISHABLE_KEY=your-anon-key
 ```
 
-## 🚀 Execution
-
-To start the application, run:
-
-```bash
-streamlit run streamlit_ui.py
-```
-
 ---
 
-## 🧠 Project Logic & Study Goals
+## 🗄️ Database Setup
 
-The core of this project is turning raw, inconsistently formatted tax data into a clean, trustworthy dashboard. The logic covers:
-
-* **Cloud Integration:** Using the `supabase-py` client to fetch records from a PostgreSQL table hosted on Supabase.
-* **Brazilian Number Parsing:** Raw values are stored as text in Brazilian format (`.` as thousands separator, `,` as decimal, `-` for missing data). The backend normalizes them into proper numeric types before any analysis.
-* **Handling Overlapping Age Brackets:** The source data reports `≥ 60` and `≥ 80` as **nested** ranges — the 80+ group is *contained inside* the 60+ group. Summing them naively would **double-count** older taxpayers. The app de-nests them into mutually exclusive brackets (`60–79 = acima_60 − acima_80`) so totals are correct.
-* **Robust Visualization:** Missing values are coerced to zero, age groups are ordered explicitly, and the financial dimension is shown across separate, easy-to-read Plotly charts instead of a fragile dual-axis plot.
-* **Performance:** Streamlit caching (`@st.cache_resource` for the client, `@st.cache_data` for the dataset) avoids re-querying the database on every interaction.
-
----
-
-## 📊 Features
-
-* Month selector to inspect any reporting period.
-* Headline metrics: **total taxpayers** and **total amount (R$)**, free of double-counting.
-* Contributors per age group.
-* Average amount per person per age group.
-* Total amount collected per age group.
-
----
-
-## 💾 Database Setup (SQL)
-
-Run this command in your **Supabase SQL Editor** to initialize the table.
-Columns are stored as `text` on purpose — the raw data carries Brazilian formatting that is cleaned in Python at load time:
+Create the table below in the **Supabase SQL Editor**:
 
 ```sql
 CREATE TABLE irpf_bruto (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  mounth          TEXT,
+  mes             TEXT,
   qtd_ate_18      TEXT,  valor_ate_18    TEXT,
   qtd_19_25       TEXT,  valor_19_25     TEXT,
   qtd_26_30       TEXT,  valor_26_30     TEXT,
@@ -73,17 +41,83 @@ CREATE TABLE irpf_bruto (
 );
 ```
 
+The columns are stored as `TEXT` because the original dataset uses Brazilian number formatting. The data is cleaned and converted in Python before analysis.
+
+---
+
+## 📥 Data Ingestion
+
+The `data_ingest.py` file reads the CSV file, renames the columns, clears the current records in the table, and inserts the new data into Supabase.
+
+Run:
+
+```bash
+python data_ingest.py
+```
+
+---
+
+## 🚀 Execution
+
+To start the dashboard, run:
+
+```bash
+streamlit run streamlit_ui.py
+```
+
+---
+
+## 🧠 Project Logic
+
+The project is divided into three main parts:
+
+* `data_ingest.py`: reads the CSV file and sends the raw income tax refund data to Supabase.
+* `main.py`: connects to Supabase, fetches the data, cleans Brazilian number formats, and converts values to numeric types.
+* `streamlit_ui.py`: builds the dashboard interface and charts.
+
+The app analyzes **income tax refund data by age group**, showing both the number of taxpayers and the refunded amount for each group.
+
+The app also handles overlapping age groups. In the original data, the `80+` group is included inside the `60+` group. To avoid double-counting, the dashboard creates an exclusive group:
+
+```txt
+60–79 = 60+ - 80+
+```
+
+This keeps the totals correct.
+
+---
+
+## 📊 Features
+
+* Month selector.
+* Total taxpayers metric.
+* Total refunded amount metric.
+* Taxpayers by age group chart.
+* Average refund amount per person chart.
+* Total refund amount by age group chart.
+* Brazilian number and currency formatting.
+* Streamlit cache for better performance.
+
 ---
 
 ## 🗂️ Project Structure
 
-```
+```txt
 .
-├── main.py          # Backend: Supabase client + data fetching/cleaning
-├── streamlit_ui.py  # Frontend: dashboard and Plotly charts
-├── .env             # Credentials (not committed)
+├── data_irpf.csv       # Raw income tax refund dataset
+├── data_ingest.py      # CSV ingestion into Supabase
+├── main.py             # Supabase connection and data cleaning
+├── streamlit_ui.py     # Streamlit dashboard
+├── .env                # Environment variables
 └── README.md
 ```
 
 ---
-> **Developed for study purposes:** Python Integration + Data Cleaning + Database Management + Data Visualization.
+
+## 📚 Data Source
+
+This project uses open government data about **Brazilian Income Tax Refund by age group**.
+
+```
+The project was created for study purposes, focusing on data cleaning, database integration, and interactive data visualization.
+```
