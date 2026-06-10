@@ -1,11 +1,11 @@
 import pandas as pd
-from dotenv import load_dotenv
-import os
 from main import start_supabase
 
 supabase = start_supabase()
 
-df = pd.read_csv("data_irpf.csv", sep=";")
+url = "https://www.gov.br/receitafederal/dados/lote-irpf-idade.csv/@@download/file/lotes_irpf_idade.csv"
+
+df = pd.read_csv(url, sep=";")
 
 df.columns = df.columns.str.strip()
 
